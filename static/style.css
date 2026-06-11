@@ -1,0 +1,82 @@
+body {
+    margin:0;
+    font-family: Arial;
+    background:#0f0f0f;
+    color:white;
+}
+
+.bg {
+    background:#0f0f0f;
+}
+
+.card {
+    background:#1a1a1a;
+    padding:20px;
+    margin:20px;
+    border-radius:15px;
+    border:1px solid #d4af37;
+}
+
+input, select {
+    display:block;
+    width:100%;
+    margin:10px 0;
+    padding:10px;
+    background:#111;
+    border:1px solid #d4af37;
+    color:white;
+}
+
+button {
+    background:#d4af37;
+    border:none;
+    padding:10px;
+    width:100%;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+table {
+    width:100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border:1px solid #333;
+    padding:10px;
+}
+
+.top {
+    display:flex;
+    justify-content:space-between;
+    padding:20px;
+}
+.cards{
+display:flex;
+gap:20px;
+flex-wrap:wrap;
+}
+
+.chart-box{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+margin:20px;
+}
+
+.gold{
+border-left:5px solid gold;
+}
+
+.green{
+border-left:5px solid green;
+}
+
+.red{
+border-left:5px solid red;
+}
+
+.danger{
+background:red;
+color:white;
+}

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IFS Dashboard</title>
+
+    <link rel="stylesheet" href="/static/style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg">
+
+<div class="top">
+    <h2>IFS - Irvan Financial System</h2>
+
+    <a href="/logout">
+        <button>Logout</button>
+    </a>
+</div>
+
+<div class="cards">
+
+    <div class="card gold">
+        <h3>Saldo</h3>
+        <h2>Rp {{ saldo }}</h2>
+    </div>
+
+    <div class="card green">
+        <h3>Pemasukan</h3>
+        <h2>Rp {{ masuk }}</h2>
+    </div>
+
+    <div class="card red">
+        <h3>Pengeluaran</h3>
+        <h2>Rp {{ keluar }}</h2>
+    </div>
+
+</div>
+
+<div class="card">
+    <h3>Tambah Transaksi</h3>
+
+    <form action="/add" method="POST">
+
+        <input
+            type="text"
+            name="kategori"
+            placeholder="Kategori"
+            required
+        >
+
+        <input
+            type="number"
+            name="nominal"
+            placeholder="Nominal"
+            required
+        >
+
+        <input
+            type="text"
+            name="keterangan"
+            placeholder="Keterangan"
+        >
+
+        <select name="jenis">
+            <option value="Pemasukan">
+                Pemasukan
+            </option>
+
+            <option value="Pengeluaran">
+                Pengeluaran
+            </option>
+        </select>
+
+        <button type="submit">
+            Tambah Data
+        </button>
+
+    </form>
+
+    <br>
+
+    <a href="/clear">
+        <button style="background:red;">
+            Clear Semua Data
+        </button>
+    </a>
+
+</div>
+
+<div class="chart-box">
+
+    <div class="card">
+        <canvas id="pieChart"></canvas>
+    </div>
+
+    <div class="card">
+        <canvas id="barChart"></canvas>
+    </div>
+
+</div>
+
+<div class="card">
+
+    <h3>Riwayat Transaksi</h3>
+
+    <table>
+
+        <tr>
+            <th>Tanggal</th>
+            <th>Jenis</th>
+            <th>Kategori</th>
+            <th>Nominal</th>
+            <th>Keterangan</th>
+            <th>Aksi</th>
+        </tr>
+
+        {% for i in data %}
+        <tr>
+            <td>{{ i[0] }}</td>
+            <td>{{ i[1] }}</td>
+            <td>{{ i[2] }}</td>
+            <td>{{ i[3] }}</td>
+            <td>{{ i[4] }}</td>
+
+            <td>
+                <a href="/delete/{{ loop.index0 }}">
+                    <button style="background:red;">
+                        Hapus
+                    </button>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+
+    </table>
+
+</div>
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const masuk =
+            Number("{{ masuk }}");
+
+        const keluar =
+            Number("{{ keluar }}");
+
+        // PIE
+        const pie =
+            document.getElementById(
+                "pieChart"
+            );
+
+        new Chart(pie, {
+            type: "pie",
+            data: {
+                labels: [
+                    "Pemasukan",
+                    "Pengeluaran"
+                ],
+                datasets: [{
+                    data: [
+                        masuk,
+                        keluar
+                    ]
+                }]
+            }
+        });
+
+        // BAR
+        const bar =
+            document.getElementById(
+                "barChart"
+            );
+
+        new Chart(bar, {
+            type: "bar",
+            data: {
+                labels: [
+                    "Pemasukan",
+                    "Pengeluaran"
+                ],
+                datasets: [{
+                    label:
+                        "Keuangan",
+                    data: [
+                        masuk,
+                        keluar
+                    ]
+                }]
+            }
+        });
+
+    }
+);
+
+</script>
+
+</body>
+</html>
