@@ -104,13 +104,8 @@ def login():
 
     if request.method == "POST":
 
-        username = request.form.get(
-            "username"
-        )
-
-        password = request.form.get(
-            "password"
-        )
+        username = request.form.get("username")
+        password = request.form.get("password")
 
         if (
             username == "Irvan"
@@ -119,14 +114,9 @@ def login():
         ):
 
             session["user"] = username
+            return redirect("/dashboard")
 
-            return redirect(
-                "/dashboard"
-            )
-
-    return render_template(
-        "login.html"
-    )
+    return render_template("login.html")
 
 
 # ==========================
