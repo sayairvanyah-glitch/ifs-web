@@ -1,151 +1,325 @@
-from flask import Flask, render_template, request, redirect, session
-import csv
-import os
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    session
+)
+
+from flask_sqlalchemy import SQLAlchemy
+
 from datetime import datetime
 
+import os
+
+
 app = Flask(__name__)
-app.secret_key = "ifs_secret"
 
-CSV_FILE = "transaksi.csv"
-
-# INIT CSV
-if not os.path.exists(CSV_FILE):
-    with open(CSV_FILE, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["Tanggal","Jenis","Kategori","Nominal","Keterangan"])
-
-def hitung():
-    masuk = 0
-    keluar = 0
-
-    with open(CSV_FILE) as f:
-        r = csv.DictReader(f)
-        for i in r:
-            if i["Nominal"].isdigit():
-                if i["Jenis"] == "Pemasukan":
-                    masuk += int(i["Nominal"])
-                else:
-                    keluar += int(i["Nominal"])
-
-    return masuk, keluar, masuk - keluar
+app.secret_key = "IFS_SECRET_KEY"
 
 
-@app.route("/")
-def home():
-    if "user" in session:
-        return redirect("/dashboard")
-    return redirect("/login")
+# ==========================
+# DATABASE CONFIG
+# ==========================
+
+database_url = os.getenv(
+    "DATABASE_URL"
+)
+
+if database_url:
+
+    database_url = database_url.replace(
+        "postgres://",
+        "postgresql://",
+        1
+    )
+
+else:
+    database_url = (
+        "sqlite:///ifs_local.db"
+    )
+
+app.config[
+    "SQLALCHEMY_DATABASE_URI"
+] = database_url
+
+app.config[
+    "SQLALCHEMY_TRACK_MODIFICATIONS"
+] = False
 
 
-@app.route("/login", methods=["GET","POST"])
-def login():
-    if request.method == "POST":
-        u = request.form["username"]
-        p = request.form["password"]
-
-        if u == "Irvan" and p == "030904":
-            session["user"] = u
-            return redirect("/dashboard")
-
-        return "Login gagal!"
-
-    return render_template("login.html")
+db = SQLAlchemy(app)
 
 
-@app.route("/dashboard")
-def dashboard():
-    if "user" not in session:
-        return redirect("/login")
+# ==========================
+# DATABASE MODEL
+# ==========================
 
-    data = []
-    with open(CSV_FILE) as f:
-        r = csv.reader(f)
-        next(r)
-        for i in r:
-            data.append(i)
+class Transaction(db.Model):
 
-    masuk, keluar, saldo = hitung()
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
 
-    return render_template(
-        "dashboard.html",
-        data=data,
-        masuk=masuk,
-        keluar=keluar,
-        saldo=saldo
+    tanggal = db.Column(
+        db.String(100)
+    )
+
+    jenis = db.Column(
+        db.String(100)
+    )
+
+    kategori = db.Column(
+        db.String(100)
+    )
+
+    nominal = db.Column(
+        db.Integer
+    )
+
+    keterangan = db.Column(
+        db.String(200)
     )
 
 
-@app.route("/add", methods=["POST"])
-def add():
-    jenis = request.form["jenis"]
-    kategori = request.form["kategori"]
-    nominal = request.form["nominal"]
-    ket = request.form["keterangan"]
+# ==========================
+# CREATE DATABASE
+# ==========================
 
-    tgl = datetime.now().strftime("%Y-%m-%d %H:%M")
+with app.app_context():
+    db.create_all()
 
-    with open(CSV_FILE, "a", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow([tgl, jenis, kategori, nominal, ket])
 
-    return redirect("/dashboard")
-@app.route("/clear")
-def clear():
+# ==========================
+# LOGIN
+# ==========================
 
-    with open(
-        CSV_FILE,
-        "w",
-        newline=""
-    ) as f:
+@app.route("/")
+def login():
 
-        writer = csv.writer(f)
+    return render_template(
+        "login.html"
+    )
 
-        writer.writerow([
-            "Tanggal",
-            "Jenis",
-            "Kategori",
-            "Nominal",
-            "Keterangan"
+
+@app.route(
+    "/login",
+    methods=["POST"]
+)
+def process_login():
+
+    username = request.form.get(
+        "username"
+    )
+
+    password = request.form.get(
+        "password"
+    )
+
+    if (
+        username == "Irvan"
+        and
+        password == "030904"
+    ):
+
+        session["user"] = username
+
+        return redirect(
+            "/dashboard"
+        )
+
+    return """
+    <h2>
+    Login gagal
+    </h2>
+
+    <a href='/'>
+    Kembali
+    </a>
+    """
+
+
+# ==========================
+# DASHBOARD
+# ==========================
+
+@app.route("/dashboard")
+def dashboard():
+
+    if "user" not in session:
+
+        return redirect("/")
+
+    transactions = (
+        Transaction.query
+        .order_by(
+            Transaction.id.desc()
+        )
+        .all()
+    )
+
+    data = []
+
+    masuk = 0
+    keluar = 0
+
+    for t in transactions:
+
+        data.append([
+            t.tanggal,
+            t.jenis,
+            t.kategori,
+            t.nominal,
+            t.keterangan,
+            t.id
         ])
 
-    return redirect("/dashboard")
+        if (
+            t.jenis
+            ==
+            "Pemasukan"
+        ):
+
+            masuk += t.nominal
+
+        else:
+
+            keluar += t.nominal
+
+    saldo = masuk - keluar
+    return render_template(
+        "dashboard.html",
+        username=session["user"],
+        data=data,
+        saldo=saldo,
+        pemasukan=masuk,
+        pengeluaran=keluar
+    )
 
 
-@app.route("/delete/<int:index>")
-def delete(index):
+# ==========================
+# TAMBAH TRANSAKSI
+# ==========================
 
-    rows = []
+@app.route(
+    "/add",
+    methods=["POST"]
+)
+def add_transaction():
 
-    with open(CSV_FILE, "r") as f:
-        reader = csv.reader(f)
+    if "user" not in session:
+        return redirect("/")
 
-        header = next(reader)
+    jenis = request.form.get(
+        "jenis"
+    )
 
-        for row in reader:
-            rows.append(row)
+    kategori = request.form.get(
+        "kategori"
+    )
 
-    if index < len(rows):
-        rows.pop(index)
+    nominal = request.form.get(
+        "nominal"
+    )
 
-    with open(
-        CSV_FILE,
-        "w",
-        newline=""
-    ) as f:
+    keterangan = request.form.get(
+        "keterangan"
+    )
 
-        writer = csv.writer(f)
+    transaksi = Transaction(
 
-        writer.writerow(header)
-        writer.writerows(rows)
+        tanggal=datetime.now().strftime(
+            "%d-%m-%Y %H:%M"
+        ),
 
-    return redirect("/dashboard")
+        jenis=jenis,
 
+        kategori=kategori,
+
+        nominal=int(nominal),
+
+        keterangan=keterangan
+    )
+
+    db.session.add(
+        transaksi
+    )
+
+    db.session.commit()
+
+    return redirect(
+        "/dashboard"
+    )
+
+
+# ==========================
+# HAPUS SATU DATA
+# ==========================
+
+@app.route("/delete/<int:id>")
+def delete_transaction(id):
+
+    if "user" not in session:
+        return redirect("/")
+
+    transaksi = (
+        Transaction.query
+        .get(id)
+    )
+
+    if transaksi:
+
+        db.session.delete(
+            transaksi
+        )
+
+        db.session.commit()
+
+    return redirect(
+        "/dashboard"
+    )
+
+
+# ==========================
+# CLEAR ALL DATA
+# ==========================
+
+@app.route("/clear")
+def clear_data():
+
+    if "user" not in session:
+        return redirect("/")
+
+    Transaction.query.delete()
+
+    db.session.commit()
+
+    return redirect(
+        "/dashboard"
+    )
+
+
+# ==========================
+# LOGOUT
+# ==========================
 
 @app.route("/logout")
 def logout():
-    session.pop("user", None)
-    return redirect("/login")
 
+    session.clear()
+
+    return redirect("/")
+
+
+# ==========================
+# RUN APP
+# ==========================
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+
+    app.run(
+        host="0.0.0.0",
+        port=5000,
+        debug=True
+    )
