@@ -130,13 +130,8 @@ def process_login():
         )
 
     return """
-    <h2>
-    Login gagal
-    </h2>
-
-    <a href='/'>
-    Kembali
-    </a>
+    <h2>Login gagal</h2>
+    <a href='/'>Kembali</a>
     """
 
 

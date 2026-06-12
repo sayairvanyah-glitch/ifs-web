@@ -1,21 +1,127 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IFS Login</title>
-    <link rel="stylesheet" href="/static/style.css">
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:Arial, sans-serif;
+        }
+
+        body{
+            background:#0f0f0f;
+            height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+
+        .login-box{
+            width:350px;
+            background:#171717;
+            border:1px solid #d4af37;
+            border-radius:20px;
+            padding:35px;
+            box-shadow:0 0 25px rgba(212,175,55,0.25);
+        }
+
+        h1{
+            color:#d4af37;
+            text-align:center;
+            margin-bottom:10px;
+        }
+
+        p{
+            color:#999;
+            text-align:center;
+            margin-bottom:30px;
+        }
+
+        input{
+            width:100%;
+            padding:14px;
+            margin-bottom:15px;
+            border:none;
+            border-radius:12px;
+            background:#222;
+            color:white;
+            outline:none;
+            font-size:15px;
+        }
+
+        input:focus{
+            border:1px solid #d4af37;
+        }
+
+        button{
+            width:100%;
+            padding:14px;
+            border:none;
+            border-radius:12px;
+            background:#d4af37;
+            color:black;
+            font-size:16px;
+            font-weight:bold;
+            cursor:pointer;
+            transition:0.3s;
+        }
+
+        button:hover{
+            transform:scale(1.03);
+        }
+
+        .brand{
+            text-align:center;
+            color:#fff;
+            font-size:14px;
+            margin-top:20px;
+        }
+
+        .gold{
+            color:#d4af37;
+        }
+    </style>
 </head>
-<body class="bg">
 
-<div class="card">
-    <h1>IFS LOGIN</h1>
+<body>
 
-    <form method="POST">
-        <input name="username" placeholder="Username">
-        <input name="password" type="password" placeholder="Password">
+    <div class="login-box">
 
-        <button type="submit">Login</button>
-    </form>
-</div>
+        <h1>IFS</h1>
+        <p>Irvan Finance System</p>
+
+        <form action="/login" method="POST">
+
+            <input
+                type="text"
+                name="username"
+                placeholder="Username"
+                required
+            >
+
+            <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                required
+            >
+
+            <button type="submit">
+                Login
+            </button>
+
+        </form>
+
+        <div class="brand">
+            Black <span class="gold">Gold</span> Edition
+        </div>
+
+    </div>
 
 </body>
 </html>
