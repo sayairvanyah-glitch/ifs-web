@@ -95,41 +95,38 @@ with app.app_context():
 # LOGIN
 # ==========================
 
-@app.route("/")
+# ==========================
+# LOGIN
+# ==========================
+
+@app.route("/", methods=["GET", "POST"])
 def login():
+
+    if request.method == "POST":
+
+        username = request.form.get(
+            "username"
+        )
+
+        password = request.form.get(
+            "password"
+        )
+
+        if (
+            username == "Irvan"
+            and
+            password == "030904"
+        ):
+
+            session["user"] = username
+
+            return redirect(
+                "/dashboard"
+            )
 
     return render_template(
         "login.html"
     )
-
-
-@app.route(
-    "/login",
-    methods=["POST"]
-)
-def process_login():
-
-    username = request.form.get(
-        "username"
-    )
-
-    password = request.form.get(
-        "password"
-    )
-
-    if (
-        username == "Irvan"
-        and
-        password == "030904"
-    ):
-
-        session["user"] = username
-
-        return redirect(
-            "/dashboard"
-        )
-
-    return redirect("/")
 
 
 # ==========================
