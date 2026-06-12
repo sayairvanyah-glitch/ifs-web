@@ -129,10 +129,7 @@ def process_login():
             "/dashboard"
         )
 
-    return """
-    <h2>Login gagal</h2>
-    <a href='/'>Kembali</a>
-    """
+    return redirect("/")
 
 
 # ==========================
